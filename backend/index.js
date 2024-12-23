@@ -8,7 +8,13 @@ const path = require('path');
 const pdfParse = require('pdf-parse');
 
 const app = express();
-app.use(cors());
+const corsOptions = {
+  origin: '*', 
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type'],
+};
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 const auth = new google.auth.GoogleAuth({
@@ -34,6 +40,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+app.get('/', (req, res) => {
+  res.send('Backend is working');
+});
+
 app.post('/write', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -45,13 +55,21 @@ app.post('/write', upload.single('file'), async (req, res) => {
     const pdfData = await pdfParse(dataBuffer);
     const text = pdfData.text; 
 
+    const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Sheet1!A:A',  
+      });
+  
+      const numRows = response.data.values ? response.data.values.length : 0;
+      const nextRow = numRows + 1; 
+
     const values = [
       [req.body.title, text], 
     ];
 
     await sheets.spreadsheets.values.update({
       spreadsheetId: SPREADSHEET_ID,
-      range: 'Sheet1!A1',
+      range: `Sheet1!A${nextRow}`,
       valueInputOption: 'RAW',
       requestBody: { values },
     });
