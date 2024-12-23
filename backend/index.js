@@ -48,11 +48,14 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post('/write', upload.single('file'), (req, res) => {
-  console.log('File uploaded:', req.file);
+app.post('/write', (req, res) => {
+  console.log('POST /write route accessed');
+  console.log('Request headers:', req.headers);
   console.log('Request body:', req.body);
-  res.send('Minimal /write route is working');
+
+  res.send('POST /write route is working');
 });
+
 
 
 // app.post('/write', upload.single('file'), async (req, res) => {
