@@ -31,12 +31,12 @@ function App() {
     formData.append('title',title)
     try {
       handleStatusChange(index,"loading")
-      const response = await axios.post('http://localhost:3000/write', formData, {
+      const response = await axios.post('https://file-upload-sooty.vercel.app/write', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      if(response.statusText=="OK"){
+      if(response.status==200){
         handleStatusChange(index,"completed")
       };
     } catch (error) {

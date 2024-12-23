@@ -29,17 +29,9 @@ const auth = new google.auth.GoogleAuth({
 const sheets = google.sheets({ version: 'v4', auth });
 const SPREADSHEET_ID = '1FBFC1Gh-WxnZlcb9R4Iw5smsFxkbw8Yt7A0lRAEE2ak';
 
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, '/tmp');
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, Date.now() + path.extname(file.originalname)); 
-//   }
-// });
 
 const upload = multer({
-  storage: multer.memoryStorage(), // Use memory storage instead of disk storage
+  storage: multer.memoryStorage(), 
 });
 
 app.get('/', (req, res) => {
