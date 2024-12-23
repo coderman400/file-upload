@@ -8,6 +8,10 @@ const PaperButton = (props) => {
             styleSelector ="border-blue-400 text-blue-500 hover:bg-blue-400"
             textSelector = "Upload"
             break
+        case "loading":
+            styleSelector ="border-gray-400 text-gray-500 disabled"
+            textSelector = "Loading..."
+            break
         case "completed":
             styleSelector ="border-green-400 text-green-500 hover:bg-green-400"
             textSelector = "Result"

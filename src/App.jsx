@@ -14,11 +14,6 @@ function App() {
   ];
 
   const [statuses, setStatuses] = useState(papers.map(() => ""));
-  const [selectedFile, setSelectedFile] = useState(null);
-
-  const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
 
   const handleStatusChange = (index, newStatus) => {
     const updatedStatuses = [...statuses];
@@ -26,15 +21,16 @@ function App() {
     setStatuses(updatedStatuses);
   };
 
-  const uploadFile = async (index) => {
-    if (!selectedFile) {
+  const uploadFile = async (file,title, index) => {
+    if (!file) {
       alert("Please select a PDF file first!");
       return;
     }
     const formData = new FormData();
-    formData.append('file', selectedFile);
-
+    formData.append('file', file);
+    formData.append('title',title)
     try {
+      handleStatusChange(index,"loading")
       const response = await axios.post('http://localhost:3000/write', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -98,10 +94,11 @@ function App() {
                       type="file"
                       id={`file-input-${index}`}
                       style={{ display: 'none' }}
+                      disabled={statuses[index]=='completed'? true : false}
                       accept=".pdf"
                       onChange={(e) => {
-                        handleFileChange(e);
-                        uploadFile(index);
+                        const file = e.target.files[0];
+                        uploadFile(file,paper.title, index); 
                       }}
                     />
                   </td>

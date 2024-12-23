@@ -46,7 +46,7 @@ app.post('/write', upload.single('file'), async (req, res) => {
     const text = pdfData.text; 
 
     const values = [
-      [text], 
+      [req.body.title, text], 
     ];
 
     await sheets.spreadsheets.values.update({
