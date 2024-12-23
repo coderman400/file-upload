@@ -31,7 +31,7 @@ const SPREADSHEET_ID = '1FBFC1Gh-WxnZlcb9R4Iw5smsFxkbw8Yt7A0lRAEE2ak';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, '/tmp');
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname)); 
@@ -48,53 +48,43 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post('/write', (req, res) => {
-  console.log('POST /write route accessed');
-  console.log('Request headers:', req.headers);
-  console.log('Request body:', req.body);
+app.post('/write', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send('No file uploaded');
+    }
 
-  res.send('POST /write route is working');
-});
+    const pdfPath = path.join(__dirname, '/tmp', req.file.filename);
+    const dataBuffer = fs.readFileSync(pdfPath);
+    const pdfData = await pdfParse(dataBuffer);
+    const text = pdfData.text; 
 
-
-
-// app.post('/write', upload.single('file'), async (req, res) => {
-//   try {
-//     if (!req.file) {
-//       return res.status(400).send('No file uploaded');
-//     }
-
-//     const pdfPath = path.join(__dirname, 'uploads', req.file.filename);
-//     const dataBuffer = fs.readFileSync(pdfPath);
-//     const pdfData = await pdfParse(dataBuffer);
-//     const text = pdfData.text; 
-
-//     const response = await sheets.spreadsheets.values.get({
-//         spreadsheetId: SPREADSHEET_ID,
-//         range: 'Sheet1!A:A',  
-//       });
+    const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Sheet1!A:A',  
+      });
   
-//       const numRows = response.data.values ? response.data.values.length : 0;
-//       const nextRow = numRows + 1; 
+      const numRows = response.data.values ? response.data.values.length : 0;
+      const nextRow = numRows + 1; 
 
-//     const values = [
-//       [req.body.title, text], 
-//     ];
+    const values = [
+      [req.body.title, text], 
+    ];
 
-//     await sheets.spreadsheets.values.update({
-//       spreadsheetId: SPREADSHEET_ID,
-//       range: `Sheet1!A${nextRow}`,
-//       valueInputOption: 'RAW',
-//       requestBody: { values },
-//     });
-//     //cleanup
-//     fs.unlinkSync(pdfPath);
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `Sheet1!A${nextRow}`,
+      valueInputOption: 'RAW',
+      requestBody: { values },
+    });
+    //cleanup
+    fs.unlinkSync(pdfPath);
 
-//     res.send('File uploaded and text written to Sheets successfully');
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send('Error processing the file');
-//   }
-// });
+    res.send('File uploaded and text written to Sheets successfully');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error processing the file');
+  }
+});
 
 app.listen(3000, () => console.log('Server running on port 3000'));
