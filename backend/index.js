@@ -29,16 +29,18 @@ const auth = new google.auth.GoogleAuth({
 const sheets = google.sheets({ version: 'v4', auth });
 const SPREADSHEET_ID = '1FBFC1Gh-WxnZlcb9R4Iw5smsFxkbw8Yt7A0lRAEE2ak';
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, '/tmp');
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); 
-  }
-});
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, '/tmp');
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, Date.now() + path.extname(file.originalname)); 
+//   }
+// });
 
-const upload = multer({ storage });
+const upload = multer({
+  storage: multer.memoryStorage(), // Use memory storage instead of disk storage
+});
 
 app.get('/', (req, res) => {
   res.send('Backend is working');
@@ -54,8 +56,8 @@ app.post('/write', upload.single('file'), async (req, res) => {
       return res.status(400).send('No file uploaded');
     }
 
-    const pdfPath = path.join(__dirname, '/tmp', req.file.filename);
-    const dataBuffer = fs.readFileSync(pdfPath);
+    
+    const dataBuffer = req.file.buffer
     const pdfData = await pdfParse(dataBuffer);
     const text = pdfData.text; 
 
@@ -77,9 +79,6 @@ app.post('/write', upload.single('file'), async (req, res) => {
       valueInputOption: 'RAW',
       requestBody: { values },
     });
-    //cleanup
-    fs.unlinkSync(pdfPath);
-
     res.send('File uploaded and text written to Sheets successfully');
   } catch (error) {
     console.error(error);
