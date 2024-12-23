@@ -14,6 +14,11 @@ function App() {
   ];
 
   const [statuses, setStatuses] = useState(papers.map(() => ""));
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleFileChange = (event) => {
+    setSelectedFile(event.target.files[0]);
+  };
 
   const handleStatusChange = (index, newStatus) => {
     const updatedStatuses = [...statuses];
@@ -21,13 +26,26 @@ function App() {
     setStatuses(updatedStatuses);
   };
 
-  const writeData = async (index) => {
-    const response = await axios.post('http://localhost:3000/write', {
-      values: [['This', 'is','some','test','values']],
-    });
-    console.log(response);
-    if(response.statusText=="OK"){
-      handleStatusChange(index, statuses[index] === "completed" ? "" : "completed")
+  const uploadFile = async (index) => {
+    if (!selectedFile) {
+      alert("Please select a PDF file first!");
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const response = await axios.post('http://localhost:3000/write', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      if(response.statusText=="OK"){
+        handleStatusChange(index,"completed")
+      };
+    } catch (error) {
+      console.error("Error uploading the file:", error);
+      handleStatusChange(index,"failed")
     }
   };
 
@@ -70,9 +88,21 @@ function App() {
                   </td>
                   <td className="capitalize font-semibold">{statuses[index]}</td>
                   <td>
-                    <PaperButton
-                      status={statuses[index]}
-                      onClick={() => writeData(index)}
+                  <label htmlFor={`file-input-${index}`} className="cursor-pointer">
+                      <PaperButton
+                        status={statuses[index]}
+                        onClick={() => document.getElementById(`file-input-${index}`).click()}
+                      />
+                    </label>
+                    <input
+                      type="file"
+                      id={`file-input-${index}`}
+                      style={{ display: 'none' }}
+                      accept=".pdf"
+                      onChange={(e) => {
+                        handleFileChange(e);
+                        uploadFile(index);
+                      }}
                     />
                   </td>
                 </tr>
