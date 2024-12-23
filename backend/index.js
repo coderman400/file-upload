@@ -48,10 +48,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/write', (req, res) => {
-  console.log('Write route accessed');
-  res.send('Write route is working');
+app.post('/write', upload.single('file'), (req, res) => {
+  console.log('File uploaded:', req.file);
+  console.log('Request body:', req.body);
+  res.send('Minimal /write route is working');
 });
+
 
 // app.post('/write', upload.single('file'), async (req, res) => {
 //   try {
