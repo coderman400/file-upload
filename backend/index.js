@@ -43,44 +43,53 @@ const upload = multer({ storage });
 app.get('/', (req, res) => {
   res.send('Backend is working');
 });
-
-app.post('/write', upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).send('No file uploaded');
-    }
-
-    const pdfPath = path.join(__dirname, 'uploads', req.file.filename);
-    const dataBuffer = fs.readFileSync(pdfPath);
-    const pdfData = await pdfParse(dataBuffer);
-    const text = pdfData.text; 
-
-    const response = await sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: 'Sheet1!A:A',  
-      });
-  
-      const numRows = response.data.values ? response.data.values.length : 0;
-      const nextRow = numRows + 1; 
-
-    const values = [
-      [req.body.title, text], 
-    ];
-
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: SPREADSHEET_ID,
-      range: `Sheet1!A${nextRow}`,
-      valueInputOption: 'RAW',
-      requestBody: { values },
-    });
-    //cleanup
-    fs.unlinkSync(pdfPath);
-
-    res.send('File uploaded and text written to Sheets successfully');
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error processing the file');
-  }
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  next();
 });
+
+app.get('/write', (req, res) => {
+  console.log('Write route accessed');
+  res.send('Write route is working');
+});
+
+// app.post('/write', upload.single('file'), async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).send('No file uploaded');
+//     }
+
+//     const pdfPath = path.join(__dirname, 'uploads', req.file.filename);
+//     const dataBuffer = fs.readFileSync(pdfPath);
+//     const pdfData = await pdfParse(dataBuffer);
+//     const text = pdfData.text; 
+
+//     const response = await sheets.spreadsheets.values.get({
+//         spreadsheetId: SPREADSHEET_ID,
+//         range: 'Sheet1!A:A',  
+//       });
+  
+//       const numRows = response.data.values ? response.data.values.length : 0;
+//       const nextRow = numRows + 1; 
+
+//     const values = [
+//       [req.body.title, text], 
+//     ];
+
+//     await sheets.spreadsheets.values.update({
+//       spreadsheetId: SPREADSHEET_ID,
+//       range: `Sheet1!A${nextRow}`,
+//       valueInputOption: 'RAW',
+//       requestBody: { values },
+//     });
+//     //cleanup
+//     fs.unlinkSync(pdfPath);
+
+//     res.send('File uploaded and text written to Sheets successfully');
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send('Error processing the file');
+//   }
+// });
 
 app.listen(3000, () => console.log('Server running on port 3000'));
