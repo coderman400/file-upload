@@ -5,7 +5,7 @@ import PaperButton from './components/PaperButton';
 import { BiSearch } from 'react-icons/bi';
 import { BsEye } from 'react-icons/bs';
 import './App.css';
-
+import axios from 'axios';
 function App() {
   const papers = [
     { id: 1, title: 'CBSE 2024 PYQ' },
@@ -20,6 +20,17 @@ function App() {
     updatedStatuses[index] = newStatus;
     setStatuses(updatedStatuses);
   };
+
+  const writeData = async (index) => {
+    const response = await axios.post('http://localhost:3000/write', {
+      values: [['This', 'is','some','test','values']],
+    });
+    console.log(response);
+    if(response.statusText=="OK"){
+      handleStatusChange(index, statuses[index] === "completed" ? "" : "completed")
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -61,7 +72,7 @@ function App() {
                   <td>
                     <PaperButton
                       status={statuses[index]}
-                      onClick={() => handleStatusChange(index, statuses[index] === "completed" ? "" : "completed")}
+                      onClick={() => writeData(index)}
                     />
                   </td>
                 </tr>
